@@ -52,6 +52,7 @@ def test_expected_flags_inventoried() -> None:
         "AUTOPTZ_REID_DEVICE",
         "AUTOPTZ_COREML_UNITS",
         "AUTOPTZ_NDI_COLOR_FORMAT",
+        "AUTOPTZ_PANASONIC_RAMP",
         # Model overrides
         "AUTOPTZ_MODEL_PATH",
         "AUTOPTZ_POSE_MODEL_PATH",
@@ -78,6 +79,7 @@ def test_flags_grouped_into_sections() -> None:
         "AUTOPTZ_REID_DEVICE",
         "AUTOPTZ_COREML_UNITS",
         "AUTOPTZ_NDI_COLOR_FORMAT",
+        "AUTOPTZ_PANASONIC_RAMP",
     }
     assert by_section["Model overrides"] == {
         "AUTOPTZ_MODEL_PATH",
@@ -133,3 +135,11 @@ def test_ndi_color_format_uses_real_source_values() -> None:
     ndi = next(f for f in EXPERIMENTAL_FLAGS if f.env_key == "AUTOPTZ_NDI_COLOR_FORMAT")
     assert ndi.choices == ("fastest", "bgra")
     assert ndi.default == "fastest"
+
+
+def test_panasonic_ramp_default_matches_backend() -> None:
+    from autoptz.engine.ptz.panasonic_aw import DEFAULT_RAMP_CODES_PER_S
+
+    flag = next(f for f in EXPERIMENTAL_FLAGS if f.env_key == "AUTOPTZ_PANASONIC_RAMP")
+    assert float(flag.default) == DEFAULT_RAMP_CODES_PER_S
+    assert "0" in flag.choices  # easing can always be switched off

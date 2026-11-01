@@ -34,6 +34,8 @@ Defaults are the validated, broadcast-sane starting point; one concept = one con
 
 | Setting | Default | Notes |
 | --- | --- | --- |
+| `backend` | `auto` | How move commands reach the camera: `auto`, `ndi`, `visca_ip`, `visca_usb`, `onvif`, `panasonic`, or `digital` (Center Stage). `auto` probes NDI → ONVIF → Panasonic → VISCA-IP. Set under **Properties → PTZ → Advanced**. |
+| `address` | — | `host[:port]` for IP backends, or the serial port for `visca_usb`. `panasonic` also accepts `user:password@host` when the camera's user authentication is on (default port 80). See [Panasonic AW protocol notes](research/panasonic-aw-protocol.md). |
 | `max_pan_speed` / `max_tilt_speed` / `max_zoom_speed` | `0.7` / `0.7` / `0.3` | Internal per-axis ceilings (0–1). Normal users do not tune tracking speed; the controller adapts speed from target error, velocity, and measured latency. |
 | `kp` / `kd` / `kv` | `0.6` / `0.05` / `0.1` | Proportional, derivative, and velocity feed-forward gains. |
 | `lead_time_s` | `0.15` | Motion prediction: project the aim point forward by this much using measured velocity. |

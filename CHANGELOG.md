@@ -6,6 +6,21 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **Panasonic AW PTZ backend** (`backend: panasonic`). Native control of
+  Panasonic AW-series PTZ cameras (AW-HE40/50/60/70/120/130, AW-UE70/150,
+  AW-HR140 and models sharing their command set) over Panasonic's HTTP
+  "AW protocol" — no ONVIF or VISCA option needed. Pan/tilt/zoom velocity,
+  100 native presets, Home, absolute moves, OSD menu and position readback;
+  optional camera login via `user:password@host`. Respects the protocol's
+  130 ms minimum command gap without ever blocking the control loop
+  (background sender, latest-wins speeds, stops jump the queue), halts the
+  head when a dropped link recovers, and eases speed changes in and out so
+  the head doesn't jolt at ~7 commands/s (tunable as **Panasonic PTZ speed
+  ramp** in Help → Experimental Features). `auto` now probes NDI → ONVIF →
+  Panasonic → VISCA-IP. Validated on an AW-HE130.
+
 ## [2.2.0] — 2026-07-03
 
 > Stable release. Headline: **predictive tracking through occlusion** (the camera

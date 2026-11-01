@@ -759,10 +759,10 @@ class PropertiesPanel(QWidget):
         adv_ptz = CollapsibleGroup("Advanced", expanded=False)
         apf = _form()
         self._backend = QComboBox()
-        self._backend.addItems(["auto", "ndi", "visca_ip", "visca_usb", "onvif"])
+        self._backend.addItems(["auto", "ndi", "visca_ip", "visca_usb", "onvif", "panasonic"])
         self._backend.setToolTip(
             "How PTZ move commands reach a motorised camera. “auto” probes "
-            "NDI → ONVIF → VISCA-IP; pick a specific protocol if you know your camera. "
+            "NDI → ONVIF → Panasonic → VISCA-IP; pick a specific protocol if you know your camera. "
             "Overridden while Center Stage is on."
         )
         self._backend.currentTextChanged.connect(self._schedule)
@@ -772,7 +772,7 @@ class PropertiesPanel(QWidget):
                 self._backend,
                 HelpBadge(
                     "How PTZ move commands reach a motorised camera. “auto” probes "
-                    "NDI → ONVIF → VISCA-IP; pick a specific protocol if you already know "
+                    "NDI → ONVIF → Panasonic → VISCA-IP; pick a specific protocol if you already know "
                     "what your camera speaks. Ignored while Center Stage is enabled."
                 ),
             ),
@@ -788,7 +788,7 @@ class PropertiesPanel(QWidget):
                 self._ptz_address,
                 HelpBadge(
                     "Where to send PTZ commands: host:port for IP backends (NDI / ONVIF / "
-                    "VISCA-IP) or the serial port for VISCA-USB. Leave blank to let the "
+                    "Panasonic / VISCA-IP; Panasonic also accepts user:pass@host) or the serial port for VISCA-USB. Leave blank to let the "
                     "backend auto-discover."
                 ),
             ),

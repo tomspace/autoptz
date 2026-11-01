@@ -39,6 +39,7 @@ Categories:
 | `AUTOPTZ_REID_DEVICE` | Force the OSNet appearance (ReID) model onto a specific device (`cpu`/`mps`/`cuda`). | `""` (auto) |
 | `AUTOPTZ_COREML_UNITS` | Target for the CoreML execution provider on Apple/Intel-Mac builds. | `""` (ALL) |
 | `AUTOPTZ_NDI_COLOR_FORMAT` | Color format requested from NDI sources (`fastest`/`bgra`). | `fastest` |
+| `AUTOPTZ_PANASONIC_RAMP` | Panasonic AW speed ramp in speed steps/second (ease in/out); `0` disables. Explicit stops are never ramped. | `27` |
 
 **Model overrides**
 
