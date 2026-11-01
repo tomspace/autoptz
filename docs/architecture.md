@@ -42,7 +42,7 @@ BGR frame
            └─ aim fusion + smoothing  (camera_worker)   pose anchor ⊕ bbox, EMA smoothing
               └─ PTZController.step()  ptz/controller.py  predict → deadzone → one-euro →
                                                           PD + velocity FF → response curve
-                 └─ backend.move_velocity()  ptz/*.py     VISCA-USB / VISCA-IP / ONVIF / NDI
+                 └─ backend.move_velocity()  ptz/*.py     VISCA-USB / VISCA-IP / ONVIF / NDI / Panasonic AW
 ```
 
 ## Package map
@@ -52,7 +52,7 @@ BGR frame
 | `autoptz/config/` | Immutable pydantic models (`models.py`) + SQLite-backed `ConfigStore` (`store.py`). |
 | `autoptz/engine/runtime/` | `inference.py` (EP selection + tuned ORT sessions), `models.py` (model fetch/export), `messages.py` (typed commands/telemetry), `shm.py` (shared-memory frame ring). |
 | `autoptz/engine/pipeline/` | `detect.py`, `track.py`, `reid.py`, `pose.py`, `framing.py`, `identify.py`, `ingest.py`, `avf_capture.py`, `pool.py`. |
-| `autoptz/engine/ptz/` | `controller.py` (smoothing/PD/zoom state machine) + backends `visca_usb.py`, `visca_ip.py`, `onvif_ptz.py`, `ndi_ptz.py`, `factory.py`. |
+| `autoptz/engine/ptz/` | `controller.py` (smoothing/PD/zoom state machine) + backends `visca_usb.py`, `visca_ip.py`, `onvif_ptz.py`, `ndi_ptz.py`, `panasonic_aw.py`, `factory.py`. |
 | `autoptz/engine/discovery/` | USB/network/NDI camera discovery. |
 | `autoptz/engine/identity/` | Identity gallery service (faces/ReID embeddings). |
 | `autoptz/engine/worker/` | Worker support modules extracted from `camera_worker`: `frame_source.py` (FrameSource + fps pacing + source construction) and `stacks.py` (ML capability probes + detector/face stack builders). |

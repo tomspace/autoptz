@@ -141,6 +141,21 @@ EXPERIMENTAL_FLAGS: tuple[ExperimentalFlag, ...] = (
         restart_required=True,
     ),
     ExperimentalFlag(
+        env_key="AUTOPTZ_PANASONIC_RAMP",
+        label="Panasonic PTZ speed ramp",
+        description=(
+            "How quickly a Panasonic AW camera may change pan/tilt/zoom speed, in "
+            "speed steps per second, so moves ease in and out instead of jumping. "
+            "Lower is smoother but laggier (below ~20 starts to overshoot); 0 turns "
+            "easing off. Explicit stops are always immediate."
+        ),
+        default="27",
+        kind="choice",
+        choices=("0", "15", "20", "27", "35", "45"),
+        restart_required=True,
+        section="Devices & tuning",
+    ),
+    ExperimentalFlag(
         env_key="AUTOPTZ_NDI_COLOR_FORMAT",
         label="NDI receive color format",
         description=(

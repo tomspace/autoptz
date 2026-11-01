@@ -7,7 +7,9 @@ to a backend instance:
   ``visca_ip``  → :class:`ViscaIPBackend`  (``host[:port]`` from ``address``)
   ``ndi``       → :class:`NDIPTZBackend`   (requires an NDI ``receiver``)
   ``onvif``     → :class:`ONVIFBackend`    (``host[:port]`` + creds)
-  ``auto``      → probe: NDI source → NDI PTZ; else ONVIF / VISCA-IP by address.
+  ``panasonic`` → :class:`PanasonicAWBackend` (``[user:pass@]host[:port]``, HTTP)
+  ``auto``      → probe: NDI source → NDI PTZ; else ONVIF / Panasonic / VISCA-IP
+                  by address.
 
 It **never raises**.  A missing optional dependency, an unparseable address, or
 an unreachable device is logged and yields ``None`` (manual PTZ then no-ops and
@@ -30,6 +32,7 @@ log = logging.getLogger(__name__)
 # Default ports per transport.
 _DEFAULT_VISCA_IP_PORT = 52381
 _DEFAULT_ONVIF_PORT = 80
+_DEFAULT_PANASONIC_PORT = 80
 
 
 def build_backend(
@@ -74,6 +77,8 @@ def build_backend(
             return _build_ndi(ptz, ndi_source=ndi_source, ndi_name=ndi_name)
         if backend == "onvif":
             return _build_onvif(ptz)
+        if backend == "panasonic":
+            return _build_panasonic(ptz)
         if backend == "digital":
             return _build_digital(ptz)
     except Exception:  # noqa: BLE001 - factory must never raise into the engine
@@ -213,6 +218,44 @@ def _build_onvif(ptz: PTZConfig) -> PTZBackend | None:
     return backend
 
 
+def _build_panasonic(ptz: PTZConfig) -> PTZBackend | None:
+    from autoptz.engine.ptz.panasonic_aw import PanasonicAWBackend
+
+    userinfo, hostport = _split_userinfo(ptz.address)
+    host, port = _split_host_port(hostport, _DEFAULT_PANASONIC_PORT)
+    if not host:
+        log.warning("panasonic requested but no host in address; PTZ disabled.")
+        return None
+    username, _, password = userinfo.partition(":")
+    try:
+        backend = PanasonicAWBackend(
+            host, port, username=username, password=password, ramp_codes_per_s=_panasonic_ramp()
+        )
+    except Exception:  # noqa: BLE001 - unreachable / not a Panasonic AW camera
+        log.warning("Panasonic AW %s:%d unavailable; PTZ disabled.", host, port, exc_info=True)
+        return None
+    log.info("PTZ backend: Panasonic AW (HTTP) on %s:%d", host, port)
+    return backend
+
+
+def _panasonic_ramp() -> float:
+    """Speed ramp for the Panasonic backend (codes/s); ``0`` disables easing.
+
+    Defaults to the backend's tuned value; override with
+    ``AUTOPTZ_PANASONIC_RAMP`` (e.g. ``20`` = gentler, ``40`` = snappier).
+    """
+    from autoptz.engine.ptz.panasonic_aw import DEFAULT_RAMP_CODES_PER_S
+
+    raw = os.environ.get("AUTOPTZ_PANASONIC_RAMP", "").strip()
+    if not raw:
+        return DEFAULT_RAMP_CODES_PER_S
+    try:
+        return max(0.0, float(raw))
+    except ValueError:
+        log.warning("Ignoring bad AUTOPTZ_PANASONIC_RAMP=%r", raw)
+        return DEFAULT_RAMP_CODES_PER_S
+
+
 def _build_digital(ptz: PTZConfig) -> PTZBackend | None:
     from autoptz.engine.ptz.digital import DigitalPTZBackend
 
@@ -235,7 +278,7 @@ def _probe_auto(
     Order:
       1. An NDI source/name → NDI PTZ (own or shared receiver).
       2. A USB camera with no address → scan serial ports for VISCA-USB.
-      3. An address present → try ONVIF, then VISCA-IP.
+      3. An address present → try ONVIF, then Panasonic AW (HTTP), then VISCA-IP.
       4. Nothing probable → ``None`` (manual PTZ no-ops; auto control disabled).
     """
     if ndi_source is not None or (ndi_name or "").strip():
@@ -257,6 +300,10 @@ def _probe_auto(
     onvif = _build_onvif(ptz)
     if onvif is not None:
         return onvif
+
+    panasonic = _build_panasonic(ptz)
+    if panasonic is not None:
+        return panasonic
 
     visca = _build_visca_ip(ptz)
     if visca is not None:
@@ -289,6 +336,23 @@ def _split_host_port(address: str | None, default_port: int) -> tuple[str, int]:
         except ValueError:
             return raw, default_port
     return raw, default_port
+
+
+def _split_userinfo(address: str | None) -> tuple[str, str]:
+    """Split ``[scheme://][user[:pass]@]rest`` → (``user[:pass]``, ``[scheme://]rest``).
+
+    Never raises; returns ``("", address)`` when there is no userinfo.
+    """
+    raw = (address or "").strip()
+    scheme = ""
+    if "://" in raw:
+        scheme, raw = raw.split("://", 1)
+        scheme += "://"
+    hostpart = raw.split("/", 1)[0]
+    if "@" not in hostpart:
+        return "", scheme + raw
+    userinfo, _, rest = raw.rpartition("@")
+    return userinfo, scheme + rest
 
 
 def _split_credentials(ptz: PTZConfig) -> tuple[str, str]:
